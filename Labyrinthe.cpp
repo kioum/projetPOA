@@ -31,6 +31,7 @@ Labyrinthe::Labyrinthe (char* filename){
     if(fichier)
     {
         //On defini les murs en horizontal
+
         string ligne;
         while(getline(fichier, ligne))
         {
@@ -40,6 +41,7 @@ Labyrinthe::Labyrinthe (char* filename){
                 if(wall[1] != 0 && ligne[j] == '+'){
                     wall[3] = j;
                     *walls = {wall[0], wall[1], wall[2],wall[3], 0};
+                    _nwall = _nwall + 1;
                 }
 
                 if(ligne[j] == '+' && ligne[j+1] == '-'){
@@ -49,24 +51,17 @@ Labyrinthe::Labyrinthe (char* filename){
             i++;
         }
 
-        //On defini les murs en vertical
-        string ligne;
-        while(getline(fichier, ligne))
-        {
-            int wall[4];
-            wall[0] = i; wall[2] = i;
-            for(j = 0; j < ligne.length(); j++){
-                if(wall[1] != 0 && ligne[j] == '+'){
-                    wall[3] = j;
-                    *walls = {wall[0], wall[1], wall[2],wall[3], 0};
-                }
+        //temporaire pour tester
+        _nboxes = 0;
+        _npicts = 0;
 
-                if(ligne[j] == '+' && ligne[j+1] == '-'){
-                    wall[1] = j;
-                }
-            }
-            i++;
-        }
+        _nguards = 1;
+        _guards = new Mover* [_nguards];
+        _guards [0] = new Chasseur (this);
+
+        // le trésor.
+        _treasor._x = 2;
+        _treasor._y = 2;
 
         fichier.close();
     }else cerr << "Fichier : " << filename << " inexistant !" << endl;
