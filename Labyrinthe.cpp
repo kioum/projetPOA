@@ -49,7 +49,7 @@ Labyrinthe::Labyrinthe (char* filename)
         //Obtenir les affiches
         int nbAffiche=0, nbAfficheDispo=0;
         char afficheDispo[10]; // lettre pour une affiche
-        string textAffiche[10]; // lettre pour une affiche
+        const char* textAffiche[10]; // lettre pour une affiche
         static Wall affiche[10]; //affiche
 
         // Test du premier parcours et initalisation d'un tableau char
@@ -66,7 +66,7 @@ Labyrinthe::Labyrinthe (char* filename)
                     while(ligne[j] == ' ') j++; // ici on passe tous les espaces
                     if(ligne.length() > j)
                     {
-                        textAffiche[nbAfficheDispo] = ligne.substr(j, ligne.length());
+                        textAffiche[nbAfficheDispo] = (ligne.substr(j, ligne.length())).c_str();
                         nbAfficheDispo++;
                     }
                 }
@@ -127,9 +127,7 @@ Labyrinthe::Labyrinthe (char* filename)
                 {
                     int texture = estDansTabChar(afficheDispo, nbAfficheDispo, laby[i][j]);
                     char tmp [128];
-                    cout << textAffiche[texture] << "\n";
                     sprintf (tmp, "%s/%s", texture_dir, textAffiche[texture]);
-                    cout << tmp << "\n";
                     affiche[nbAffiche] = {wall[0], j-1, wall[2], j+1, 0};
                     affiche[nbAffiche]._ntex = wall_texture(tmp);
                     nbAffiche++;
@@ -158,13 +156,16 @@ Labyrinthe::Labyrinthe (char* filename)
                 {
                     wall[1] = j;
                 }
-
-                /*initialisation des affiches verticaux
-                 if(estDansTabChar(afficheDispo, nbAfficheDispo, laby[i][j]) && laby[j+1][i] == '-'
-                    && laby[j-1][i] == '-'){
+/*
+                //initialisation des affiches verticaux
+                 if(estDansTabChar(afficheDispo, nbAfficheDispo, laby[i][j]) && laby[j+1][i] == '|'
+                    && laby[j-1][i] == '|'){
                     int texture = estDansTabChar(afficheDispo, nbAfficheDispo, laby[i][j]);
-                    affiche[nbAffiche] = {wall[0], j-1, wall[2], j+1, wall_texture(textAffiche[texture]) };
-                        nbAffiche++;
+                    char tmp [128];
+                    sprintf (tmp, "%s/%s", texture_dir, textAffiche[texture]);
+                    affiche[nbAffiche] = {wall[1], j-1, wall[3], j+1, 0};
+                    affiche[nbAffiche]._ntex = wall_texture(tmp);
+                    nbAffiche++;
                  }*/
             }
         }
