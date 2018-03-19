@@ -1,9 +1,9 @@
-a  image.png
+a   voiture.jpg
 
-+--a--+
-|  G X|
-|     |
-a     a
-|     |
-|    C|
-+--a--+
++--a--+--+
+|  G     |
+|      X |
+a   T    a
+|        |
+|    C   |
++------a-+
