@@ -6,6 +6,8 @@
 #include <string>
 #include <fstream>
 
+#include <vector>
+
 using namespace std;
 
 Sound*	Chasseur::_hunter_fire;	// bruit de l'arme du chasseur.
@@ -34,33 +36,25 @@ Labyrinthe::Labyrinthe (char* filename)
 
     if(fichier)
     {
-        // creation des variables necessaires
-        static Wall walls[10]; //murs
-        static Box caisses[10]; //caisses
-
         int i=0, j=0;
-        int nbWall=0, nbCaisses=0;
+        int nbWall=0, nbCaisses=0, nbGuard=0;
 
         //initialisation du labyrinthe
-        int nbLigne = 10;
-        int nbColonne = 10;
-        char laby[nbLigne][nbColonne];
+        int nbColonne = 0;
+        vector<string> laby;
 
         //Obtenir les affiches
         int nbAffiche=0, nbAfficheDispo=0;
-        char afficheDispo[10]; // lettre pour une affiche
-        const char* textAffiche[10]; // lettre pour une affiche
-        static Wall affiche[10]; //affiche
+        char afficheDispo[24]; // lettre pour une affiche
+        const char* textAffiche[24]; // lettre pour une affiche
 
         // Test du premier parcours et initalisation d'un tableau char
         string ligne;
         while(getline(fichier, ligne))
         {
-            if(ligne[0] != '+' && ligne[0] != '|' && estDansTabChar(afficheDispo, nbAfficheDispo, ligne[0]) == -1)
+            if(ligne[0] != ' ' && ligne[0] != '+' && ligne[0] != '|' &&
+               estDansTabChar(afficheDispo, nbAfficheDispo, ligne[0]) == -1)
             {
-                // faire des trucs
-                if(ligne[0] != ' ')
-                {
                     afficheDispo[nbAfficheDispo] = ligne[0];
                     j=1;
                     while(ligne[j] == ' ') j++; // ici on passe tous les espaces
@@ -69,46 +63,82 @@ Labyrinthe::Labyrinthe (char* filename)
                         textAffiche[nbAfficheDispo] = (ligne.substr(j, ligne.length())).c_str();
                         nbAfficheDispo++;
                     }
-                }
-
             }
             else
             {
-                for(j = 0; j < ligne.length(); j++)
-                {
-                    laby[i][j] = ligne[j];
+                if(ligne.length() > nbColonne)
+                    nbColonne = ligne.length();
+
+                for(int k=0; k < ligne.length(); k++){
+                    if(ligne[k] == 'G' || ligne[k] == 'C')
+                        nbGuard++;
+                    if(ligne[k]== 'X')
+                        nbCaisses++;
+                    if(ligne[k]== '+')
+                        nbWall++;
+                    if(estDansTabChar(afficheDispo, nbAfficheDispo, ligne[k]) != -1)
+                        nbAffiche++;
                 }
-                i++;
+                cout << ligne << endl; // ligne de debuguage
+                laby.push_back(ligne);
             }
         }
 
+        //Initialisation des gardiens + chasseur
+        _nguards = nbGuard;
+        _guards = new Mover* [_nguards];
+        nbGuard = 0;
+
+        //Tableau des caisses
+        _nboxes = nbCaisses;
+        _boxes = new Box[_nboxes];
+        nbCaisses = 0;
+
+        //Tableau des walls
+        _nwall = nbWall;
+        _walls = new Wall[_nwall];
+        nbWall = 0;
+
+        //Tableau des affiches
+        _npicts = nbAffiche;
+        _picts = new Wall[_npicts];
+        nbAffiche = 0;
+
         // Wall horizontaux
-        for(i = 0; i < nbLigne; i++)
+        for(i = 0; i < laby.size(); i++)
         {
             int wall[4];
             wall[1]=-1;
-            wall[4]=-1;
+            wall[3]=-1;
             wall[0] = i;
             wall[2] = i;
 
-            for(j = 0; j < nbColonne; j++)
+            for(j = 0; j < laby[i].length(); j++)
             {
                 if(wall[1] != -1 && laby[i][j] == '+')
                 {
                     wall[3] = j;
-                    walls[nbWall] = {wall[0], wall[1], wall[2], wall[3], 0};
-                    nbWall = nbWall + 1;
+                    _walls[nbWall] = {wall[0], wall[1], wall[2], wall[3], 0};
+                    nbWall++;
+                    wall[1] = -1;
                 }
 
-                if(laby[i][j] == '+' && laby[i][j+1] == '-')
+                if(laby[i][j] == '+' && (laby[i][j+1] == '-' || laby[i][j+1] == '+'))
                 {
                     wall[1] = j;
+                }
+
+                //Tous les murs  on ne peut pas empecher
+                if(laby[i][j] == '+' || laby[i][j] == '-' || laby[i][j] == '|' ||
+                   estDansTabChar(afficheDispo, nbAfficheDispo, laby[i][j]) != -1)
+                {
+                    _data [i][j] = 1;
                 }
 
                 //Initialisation des caisses
                 if(laby[i][j] == 'X')
                 {
-                    caisses[nbCaisses] = {i,j, 0};
+                    _boxes[nbCaisses] = {i,j, 0};
                     _data [i][j] = 1;
                     nbCaisses++;
                 }
@@ -121,6 +151,22 @@ Labyrinthe::Labyrinthe (char* filename)
                     _data [_treasor._x][_treasor._y] = 1;
                 }
 
+                // Initialisation du chasseur
+                if(laby[i][j] == 'C')
+                {
+                    _guards [0] = new Chasseur (this);
+                    _guards [0] -> _x = i*10.; _guards [0] -> _y = j*10.;
+                }
+
+                // Initialisation du chasseur
+                if(laby[i][j] == 'G')
+                {
+                    _guards [nbGuard+1] = new Gardien (this, "Potator");
+                    _guards [nbGuard+1] -> _x = i*10.; _guards [nbGuard+1] -> _y = j*10.;
+                    _data [(int)(_guards [nbGuard+1] -> _x / scale)][(int)(_guards [nbGuard+1] -> _y / scale)] = 1;
+                    nbGuard++;
+                }
+
                 //initialisation des affiches horizontaux
                 if(estDansTabChar(afficheDispo, nbAfficheDispo, laby[i][j]) != -1 && laby[i][j+1] == '-'
                         && laby[i][j-1] == '-')
@@ -128,132 +174,52 @@ Labyrinthe::Labyrinthe (char* filename)
                     int texture = estDansTabChar(afficheDispo, nbAfficheDispo, laby[i][j]);
                     char tmp [128];
                     sprintf (tmp, "%s/%s", texture_dir, textAffiche[texture]);
-                    affiche[nbAffiche] = {wall[0], j-1, wall[2], j+1, 0};
-                    affiche[nbAffiche]._ntex = wall_texture(tmp);
+                    _picts[nbAffiche] = {wall[0], j-1, wall[2], j+1, 0};
+                    _picts[nbAffiche]._ntex = wall_texture(tmp);
                     nbAffiche++;
                 }
             }
         }
 
         // Wall verticaux
+        j = 0;
         for(i = 0; i < nbColonne; i++)
         {
             int wall[4];
-            wall[1]=-1;
-            wall[4]=-1;
+            wall[1] = -1;
+            wall[3] = -1;
             wall[0] = i;
             wall[2] = i;
 
-            for(j = 0; j < nbLigne; j++)
+            for(j = 0; j < laby.size(); j++)
             {
                 if(wall[1] != -1 && laby[j][i] == '+')
                 {
                     wall[3] = j;
-                    walls[nbWall] = {wall[1], wall[0], wall[3], wall[2], 0};
-                    nbWall = nbWall + 1;
+                    //cout << "[" << wall[1] <<","<< wall[0] << "]" << "["<< wall[3] <<","<< wall[2] << "]" << endl;
+                    _walls[nbWall] = {wall[1], wall[0], wall[3], wall[2], 0};
+                    nbWall++;
+                    wall[1]=-1;
                 }
-                if(laby[j][i] == '+' && laby[j+1][i] == '|')
+                if(j+1 < laby.size() && laby[j][i] == '+' && (laby[j+1][i] == '|' || laby[j+1][i] == '+'))
                 {
                     wall[1] = j;
                 }
-/*
+
                 //initialisation des affiches verticaux
-                 if(estDansTabChar(afficheDispo, nbAfficheDispo, laby[i][j]) && laby[j+1][i] == '|'
-                    && laby[j-1][i] == '|'){
-                    int texture = estDansTabChar(afficheDispo, nbAfficheDispo, laby[i][j]);
+                 if(j-1 > 0 && j+1 < laby.size() && estDansTabChar(afficheDispo, nbAfficheDispo, laby[j][i]) != -1
+                    && laby[j+1][i] == '|' && laby[j-1][i] == '|'){
+                    int texture = estDansTabChar(afficheDispo, nbAfficheDispo, laby[j][i]);
                     char tmp [128];
                     sprintf (tmp, "%s/%s", texture_dir, textAffiche[texture]);
-                    affiche[nbAffiche] = {wall[1], j-1, wall[3], j+1, 0};
-                    affiche[nbAffiche]._ntex = wall_texture(tmp);
+                    _picts[nbAffiche] = {j-1, wall[0], j+1, wall[2], 0};
+                    _picts[nbAffiche]._ntex = wall_texture(tmp);
                     nbAffiche++;
-                 }*/
+                 }
             }
         }
-
-        _nwall = nbWall;
-        _walls = walls;
-
-        _nboxes = nbCaisses;
-        _boxes = caisses;
-
-
-        _npicts = nbAffiche;
-        _picts = affiche;
-        //temporaire pour tester
-        _nguards = 1;
-        _guards = new Mover* [_nguards];
-        _guards [0] = new Chasseur (this);
 
         fichier.close();
     }
     else cerr << "Fichier : " << filename << " inexistant !" << endl;
 }
-
-
-/*
-Labyrinthe::Labyrinthe (char* filename)
-{
-	// les 4 murs.
-	static Wall walls [] = {
-		{ 0, 0, LAB_WIDTH-1, 0, 0 },
-		{ LAB_WIDTH-1, 0, LAB_WIDTH-1, LAB_HEIGHT-1, 0 },
-		{ LAB_WIDTH-1, LAB_HEIGHT-1, 0, LAB_HEIGHT-1, 0 },
-		{ 0, LAB_HEIGHT-1, 0, 0, 0 },
-	};
-	// une affiche.
-	//  (attention: pour des raisons de rapport d'aspect, les affiches doivent faire 2 de long)
-	static Wall affiche [] = {
-		{ 4, 0, 6, 0, 0 },		// premi?re affiche.
-		{ 8, 0, 10, 0, 0 },		// autre affiche.
-	};
-	// 3 caisses.
-	static Box	caisses [] = {
-		{ 70, 12, 0 },
-		{ 10, 5, 0 },
-		{ 65, 22, 0 },
-	};
-	// juste un mur autour et les 3 caisses et le tr?sor dedans.
-	for (int i = 0; i < LAB_WIDTH; ++i)
-		for (int j = 0; j < LAB_HEIGHT; ++j) {
-			if (i == 0 || i == LAB_WIDTH-1 || j == 0 || j == LAB_HEIGHT-1)
-				_data [i][j] = 1;
-			else
-				_data [i][j] = EMPTY;
-		}
-	// indiquer qu'on ne marche pas sur une caisse.
-	_data [caisses [0]._x][caisses [0]._y] = 1;
-	_data [caisses [1]._x][caisses [1]._y] = 1;
-	_data [caisses [2]._x][caisses [2]._y] = 1;
-	// les 4 murs.
-	_nwall = 4;
-	_walls = walls;
-	// deux affiches.
-	_npicts = 2;
-	_picts = affiche;
-	// la deuxi?me ? une texture diff?rente.
-	char	tmp [128];
-	sprintf (tmp, "%s/%s", texture_dir, "voiture.jpg");
-	_picts [1]._ntex = wall_texture (tmp);
-	// 3 caisses.
-	_nboxes = 3;
-	_boxes = caisses;
-	// le tr?sor.
-	_treasor._x = 10;
-	_treasor._y = 10;
-	_data [_treasor._x][_treasor._y] = 1;	// indiquer qu'on ne marche pas sur le tr?sor.
-	// le chasseur et les 4 gardiens.
-	_nguards = 5;
-	_guards = new Mover* [_nguards];
-	_guards [0] = new Chasseur (this);
-	_guards [1] = new Gardien (this, "drfreak");
-	_guards [2] = new Gardien (this, "Marvin"); _guards [2] -> _x = 90.; _guards [2] -> _y = 70.;
-	_guards [3] = new Gardien (this, "Potator"); _guards [3] -> _x = 60.; _guards [3] -> _y = 10.;
-	_guards [4] = new Gardien (this, "garde"); _guards [4] -> _x = 130.; _guards [4] -> _y = 100.;
-	// indiquer qu'on ne marche pas sur les gardiens.
-	_data [(int)(_guards [1] -> _x / scale)][(int)(_guards [1] -> _y / scale)] = 1;
-	_data [(int)(_guards [2] -> _x / scale)][(int)(_guards [2] -> _y / scale)] = 1;
-	_data [(int)(_guards [3] -> _x / scale)][(int)(_guards [3] -> _y / scale)] = 1;
-	_data [(int)(_guards [4] -> _x / scale)][(int)(_guards [4] -> _y / scale)] = 1;
-}
-
-*/
