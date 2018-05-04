@@ -28,8 +28,10 @@ public:
 	void update (void) {};
 	// fait bouger la boule de feu (ceci est une exemple, à vous de traiter les collisions spécifiques...)
 	bool process_fireball (float dx, float dy);
-	// tire sur un ennemi.
+	// tire sur un ennemi (clic gauche).
 	void fire (int angle_vertical);
+	// clic droit.
+	void right_click (bool shift, bool control);
 };
 
 #endif

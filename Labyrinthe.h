@@ -3,17 +3,17 @@
 
 #include "Environnement.h"
 
-#define	LAB_WIDTH	80
-#define	LAB_HEIGHT	25
-
 class Labyrinthe : public Environnement {
 private:
-	char	_data [LAB_WIDTH][LAB_HEIGHT];
+	char	**_data;
+	int largeur;
+	int longueur;
 
 public:
 	Labyrinthe (char*);
-	int width () { return LAB_WIDTH;}	// retourne la largeur du labyrinthe.
-	int height () { return LAB_HEIGHT;}	// retourne la longueur du labyrinthe.
+	int setHeightWidth(int w, int h) {largeur = w; longueur = h;} //permet de donner une taille du labyrinthe
+	int width () { return largeur;}	// retourne la largeur du labyrinthe.
+	int height () { return longueur;}	// retourne la longueur du labyrinthe.
 	char data (int i, int j)
 	{
 		return _data [i][j];

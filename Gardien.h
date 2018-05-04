@@ -29,14 +29,14 @@ public:
             //char parcours[_l->width()][_l->height()];
            // parcours[0][0] = 1;
             //printf("%i ici",parcours[0][0]);
-            chemin((int)_l->_treasor._x, (int)_l->_treasor._y, 1);
-            for(int i=0; i<_l->width(); i++){
-                for(int j=0; j<_l->height(); j++){
-                     printf("%i ", _l->data(i, j));
-                }
-               printf("\n");
-            }
-             printf("-----------------------------------\n");
+          //  chemin((int)_l->_treasor._x, (int)_l->_treasor._y, 1);
+            //for(int i=0; i<_l->width(); i++){
+              //  for(int j=0; j<_l->height(); j++){
+                    // printf("%i ", _l->data(i, j));
+                //}
+               //printf("\n");
+            //}
+             //printf("-----------------------------------\n");
         }
 
 

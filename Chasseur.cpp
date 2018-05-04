@@ -61,8 +61,21 @@ bool Chasseur::process_fireball (float dx, float dy)
 
 void Chasseur::fire (int angle_vertical)
 {
-	message ("touché !...");
+	message ("Woooshh...");
 	_hunter_fire -> play ();
 	_fb -> init (/* position initiale de la boule */ _x, _y, 10.,
 				 /* angles de visée */ angle_vertical, _angle);
+}
+
+/*
+ *	Clic droit: par défaut fait tomber le premier gardien.
+ *	Inutile dans le vrai jeu, mais c'est juste pour montrer
+ *	une utilisation des fonctions « tomber » et « rester_au_sol »
+ */
+
+void Chasseur::right_click (bool shift, bool control) {
+	if (shift)
+		_l -> _guards [1] -> rester_au_sol ();
+	else
+		_l -> _guards [1] -> tomber ();
 }
