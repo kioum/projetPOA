@@ -18,6 +18,10 @@ public:
 	{
 		return _data [i][j];
 	}	// retourne la case (i, j).
+	char setData (int i, int j, int val)
+	{
+		_data [i][j] = val;
+	}	// donne une valeur la case (i, j).
 };
 
 #endif

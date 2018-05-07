@@ -8,6 +8,7 @@
 #define EMPTY	0		// case vide (ou on peut marcher!)
 
 extern void message (const char* format, ...);
+extern void partie_terminee (bool);
 class Mover;
 
 struct Wall {

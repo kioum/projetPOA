@@ -29,6 +29,7 @@ int estDansTabChar(char* tab, int nb, char c)
 
     return -1;
 }
+
 // 0 vide, 1 mur, 2 caisse, 3 tresor, 4 gardien, 5 chasseur
 Labyrinthe::Labyrinthe (char* filename)
 {
@@ -88,7 +89,7 @@ Labyrinthe::Labyrinthe (char* filename)
                     if(estDansTabChar(afficheDispo, nbAfficheDispo, ligne[k]) != -1)
                         nbAffiche++;
                 }
-                cout << ligne << endl; // ligne de debuguage
+                //cout << ligne << endl; // ligne de debuguage
                 nbLigne++;
                 laby.push_back(ligne);
             }
@@ -197,6 +198,7 @@ Labyrinthe::Labyrinthe (char* filename)
                 {
                     _guards [0] = new Chasseur (this);
                     _guards [0] -> _x = i*10.; _guards [0] -> _y = j*10.;
+                    _guards [0] -> _angle = 180;
                 }
 
                 // Initialisation des gardiens

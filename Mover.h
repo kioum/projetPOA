@@ -30,6 +30,9 @@ public:
 	virtual bool move (double dx, double dy) =0;
 	// fait tirer le personnage sur un ennemi (vous pouvez ignorer l'angle vertical).
 	virtual void fire (int angle_vertical) =0;
+	// appelée pour le gardien 0 (chasseur) quand l'utilisateur fait un clic droit;
+	// shift (control) est vrai si la touche shift (control) est appuyée.
+	virtual void right_click (bool shift, bool control) {}
 };
 
 #endif
