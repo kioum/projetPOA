@@ -39,8 +39,6 @@ public:
         this->PP=rand()%100+1;
         this->seuilH=75;
         this->seuilB=25;
-	    this->posxT=l->_treasor._x;
-        this->posyT=l->_treasor._y;
 		this->timebouge=0;
 
         
@@ -62,8 +60,6 @@ public:
     int PP;
     int seuilH;
     int seuilB;
-    int posxT;
-    int posyT;
     int posxC;
     int posyC;
 	int timebouge;
@@ -86,6 +82,8 @@ public:
 		//printf("%d\n", test1 && test2);
 		if(test1 && test2){
 			this->etat = 2;
+			this->posxC = chass->_x;
+			this->posyC = chass->_y;
 			_angle = (atan2((_x - chass->_x), (chass->_y - _y)) * 180.0 / PI);
 			if(_angle < 0)
 				_angle += 360;
@@ -102,24 +100,23 @@ public:
 		}
 		if (!entrainTire && timeTire <= 100)
 				timeTire++;
+		
+		int taille=_l->width()*_l->height();
+		vector<bool> trouve (taille, false);
+		Init_graph(taille);
+		
         if(this->etat == 1)
         {
 
             ////////////////////////////////////////////////////////////////////
             double r1=(rand()%2) ; //BFS target Tresor
 			double r2=(rand()%2);
-			
-			int taille=_l->width()*_l->height();
-			vector<bool> trouve (taille, false);
-			
             ////////////////////////////////////////////////////////////////////
-	
-
 			
 			if(timebouge>=16){
-				Init_graph(taille);
 				//On recupere la queue du chemin
-				queue<int> q = BFS(graph,(_x/10.)*_l->height()+(_y/10.) ,trouve);
+				queue<int> q = BFS(graph,(_x/10.)*_l->height()+(_y/10.), 
+								   _l->_treasor._x*_l->height()+_l->_treasor._y, trouve);
 				
 				//Affichage debug
 				/*queue<int> q2 = q;
@@ -153,7 +150,41 @@ public:
 			double r2=rand()%10;
 
             ////////////////////////////////////////////////////////////////////
+			if(timebouge>=16){
+				if(posxC != 0 && posyC != 0){
+					//On recupere la queue du chemin
+					queue<int> q = BFS(graph,(_x/10.)*_l->height()+(_y/10.), 
+									   (posxC/10.)*_l->height()+(posyC/10.), trouve);
 
+					int new_y = q.front();
+					int new_x = 0;
+					
+					timebouge = 0;
+					
+					while(new_y > _l->height()){
+						new_x++;
+						new_y -= _l->height();
+					}
+					//printf("%i, %i\n", new_x, new_y);
+				   if(!move((new_x*10. - _x), (new_y*10. - _y))){
+					 //printf("Changement %i\n", (int) r1);
+					  // printf("raté");
+				   }
+					if(_x/10. == posxC/10. && _y/10. == posyC/10.){
+						posxC = 0;
+						posyC = 0;
+					}
+						
+				}else {
+					//mouvement aleatoire
+					if(!move(r1,r2)){
+						r1=-r1;
+				   		r2=-r2;
+				   		move(r1,r2);
+                 	//printf("Changement %i\n", (int) r1);
+			   		}
+				}
+			}else {timebouge++;}
            /*if(timebouge>=20){
 				timebouge=0;
                if(!move(r1,r2)){
@@ -205,7 +236,7 @@ public:
 		
 	}
 		
-	queue<int> BFS(vector <int> *graph, int v, vector<bool> &trouve)
+	queue<int> BFS(vector <int> *graph, int v, int end, vector<bool> &trouve)
 	{
     	// create a queue used to do BFS
    	 	queue<int> q;
@@ -217,7 +248,7 @@ public:
     	// push source vertex into the queue
     	q.push(v);
 		int i=0; 
-		bool finded=false;
+		
     	// run till queue is not empty
    		 while (!q.empty())
    		 { 
@@ -228,7 +259,7 @@ public:
 			 path.push(v);
 			 
 			 //Si on trouve le tresor on arrete
-			if (_l->_treasor._x*_l->height()+_l->_treasor._y == v) return bestWay(path);
+			if (end == v) return bestWay(path);
 
        		// do for every edge (v -> u)
 			for (int j=0; j<graph[v].size();j++){
